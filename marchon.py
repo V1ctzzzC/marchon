@@ -18,9 +18,7 @@ from email import encoders
 # Definir o caminho para o repositório "marchon"
 MARCHON_FOLDER = os.path.join(os.getcwd(), 'marchon')  # Obtém o diretório atual
 
-# Criar o diretório 'marchon' se não existir
-if not os.path.exists(MARCHON_FOLDER):
-    os.makedirs(MARCHON_FOLDER)
+
 
 # Configurações do SFTP
 SFTP_HOST = 'sftp.marchon.com.br'
