@@ -23,7 +23,7 @@ if not os.path.exists(MARCHON_FOLDER):
     os.makedirs(MARCHON_FOLDER)
 
 # Configuração da API
-LOG_FILE = os.path.join(MARCHON_FOLDER, "log_envio_api.log")  # Caminho do log
+LOG_FILE = os.path.join("log_envio_api.log")  # Caminho do log
 
 # Configuração do log
 logging.basicConfig(filename=LOG_FILE, level=logging.INFO, format="%(asctime)s - %(message)s")
@@ -38,8 +38,8 @@ FILE_TO_CHECK = 'estoque_disponivel.csv'
 
 # Configuração da API
 API_URL = 'https://api.bling.com.br/Api/v3/estoques'
-LOG_FILE = os.path.join(MARCHON_FOLDER, "log_envio_api.log")  # Caminho do log
-TOKEN_FILE = os.path.join(MARCHON_FOLDER, "token_novo.json")  # Caminho do token
+LOG_FILE = os.path.join("log_envio_api.log")  # Caminho do log
+TOKEN_FILE = os.path.join("token_novo.json")  # Caminho do token
 BLING_AUTH_URL = "https://api.bling.com.br/Api/v3/oauth/token"
 BASIC_AUTH = ("19f357c5eccab671fe86c94834befff9b30c3cea", "0cf843f8d474ebcb3f398df79077b161edbc6138bcd88ade942e1722303a")
 
