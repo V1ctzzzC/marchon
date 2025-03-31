@@ -23,4 +23,4 @@ jobs:
           pip install requests paramiko pandas pytz Flask openpyxl  # Adicione outras dependências necessárias
 
       - name: Executar o script
-        run: python marchon/marchon.py  # Substitua pelo nome do seu arquivo
+        run: python marchon.py  # Substitua pelo nome do seu arquivo
