@@ -57,7 +57,7 @@ def conectar_sftp():
         return None
 
 def baixar_arquivo_sftp(sftp, remote_file_path, local_file_path):
-    """Baixa um arquivo do SFTP para a máquina local."""
+    """Baixa um arquivo do SFTP para o diretório 'marchon'."""
     try:
         print(f"Baixando o arquivo {remote_file_path}...")
         start_time = time.time()
@@ -248,8 +248,11 @@ def main():
         print("Conexão com o SFTP falhou. Finalizando o script.")
         return
 
+    # Caminho local para salvar o arquivo baixado
     local_file_path = os.path.join(MARCHON_FOLDER, FILE_TO_CHECK)
     remote_file_path = f"{REMOTE_DIR}/{FILE_TO_CHECK}"
+
+    # Baixar o arquivo do SFTP
     baixar_arquivo_sftp(sftp, remote_file_path, local_file_path)
     sftp.close()
 
@@ -261,9 +264,7 @@ def main():
 
     resultados = buscar_correspondencias(sftp_df, usuario_df)
 
-    # Salvar os resultados no diretório 'marchon'
-    salvar_resultados_no_drive(resultados, "resultado_correspondencias.xlsx")
-
+    # Os resultados serão salvos automaticamente no diretório 'marchon'
     enviar_dados_api(resultados, DEPOSITO_ID)
 
     # Enviar o e-mail com o relatório após o envio dos dados
