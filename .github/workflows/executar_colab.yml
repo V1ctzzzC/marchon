@@ -1,5 +1,9 @@
 name: Executar Script Diariamente
 
+
+permissions:
+  contents: write
+
 on:
   schedule:
     - cron: '0 12 * * *'  # Executa diariamente às 9h (UTC-3)
