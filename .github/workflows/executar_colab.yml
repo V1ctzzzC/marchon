@@ -21,4 +21,4 @@ jobs:
         run: pip install notebook
 
       - name: Executar Notebook
-        run: jupyter nbconvert --execute --to notebook --inplace seu_notebook.ipynb
+        run: jupyter nbconvert --execute --to notebook --inplace marchon.ipynb
