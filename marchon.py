@@ -119,7 +119,15 @@ def buscar_correspondencias(sftp_df, usuario_df):
 
     resultado = usuario_df.merge(sftp_df, on="codigo_produto", how="left")
 
+    # Caminho para salvar o resultado no repositório
+    caminho_resultado = os.path.join(os.path.dirname(__file__), 'resultado_correspondencias.xlsx')
+    
+    # Salvar os resultados em um arquivo no diretório 'marchon'
+    resultado.to_excel(caminho_resultado, index=False)
+    print(f"✅ Resultados salvos em: {caminho_resultado}")
+
     return resultado
+
 
 
 def log_envio(mensagem):
@@ -208,14 +216,36 @@ def baixar_token():
         print(f"❌ Erro ao ler token: {e}")
         return None
 
-def salvar_token(dados):
-    """Salva o token_novo.json atualizado no diretório 'marchon'."""
+def salvar_token_novo(token_data):
+    """Salva o token atualizado no arquivo token_novo.json"""
+    caminho_token = os.path.join(os.path.dirname(__file__), "token_novo.json")
+    
+    with open(caminho_token, "w", encoding="utf-8") as f:
+        json.dump(token_data, f, indent=4)
+    
+    print(f"✅ Token atualizado e salvo em: {caminho_token}")
+
+def commit_e_push_token():
+    """Faz commit e push do token atualizado para o repositório"""
     try:
-        with open(TOKEN_FILE, "w") as file:
-            json.dump(dados, file, indent=4)
-        print("✅ Token atualizado e salvo.")
-    except Exception as e:
-        print(f"❌ Erro ao salvar token: {e}")
+        subprocess.run(["git", "add", "token_novo.json"], check=True)
+        subprocess.run(["git", "commit", "-m", "🔄 Atualizando token_novo.json"], check=True)
+        subprocess.run(["git", "push"], check=True)
+        print("✅ Token atualizado e enviado para o repositório!")
+    except subprocess.CalledProcessError as e:
+        print(f"❌ Erro ao tentar fazer commit e push: {e}")
+
+def salvar_resultados(resultados):
+    """Salva os resultados em um arquivo e faz commit no repositório."""
+    caminho_resultados = os.path.join(os.path.dirname(__file__), "resultado_correspondencias.xlsx")
+    resultados.to_excel(caminho_resultados, index=False)
+
+    print(f"✅ Resultados salvos em: {caminho_resultados}")
+
+    # Adiciona o arquivo e faz commit
+    subprocess.run(["git", "add", caminho_resultados])
+    subprocess.run(["git", "commit", "-m", "Atualizando resultado_correspondencias.xlsx"])
+    subprocess.run(["git", "push"])
 
 def obter_refresh_token():
     """Obtém o refresh_token do arquivo JSON baixado."""
@@ -271,6 +301,9 @@ def main():
 
     # Buscar correspondências entre os dados do SFTP e do usuário
     resultados = buscar_correspondencias(sftp_df, usuario_df)
+    
+    # Salvar resultados no repositório
+    salvar_resultados(resultados)
 
     # Enviar dados para a API do Bling
     enviar_dados_api(resultados, DEPOSITO_ID)
@@ -280,7 +313,7 @@ def main():
         "victor@compreoculos.com.br",
         "Relatório de Estoque",
         "Segue em anexo o relatório atualizado.",
-        os.path.join(MARCHON_FOLDER, "resultado_correspondencias.xlsx")  # O arquivo que você gerou anteriormente
+        os.path.join("resultado_correspondencias.xlsx")  # O arquivo que você gerou anteriormente
     )
 
 def enviar_email_com_anexo(destinatario, assunto, mensagem, anexo_path):
