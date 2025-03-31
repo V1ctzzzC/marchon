@@ -18,7 +18,15 @@ from email import encoders
 # Definir o caminho para o repositório "marchon"
 MARCHON_FOLDER = os.path.join(os.getcwd(), 'marchon')  # Obtém o diretório atual
 
+# Cria o diretório do log, se não existir
+if not os.path.exists(MARCHON_FOLDER):
+    os.makedirs(MARCHON_FOLDER)
 
+# Configuração da API
+LOG_FILE = os.path.join(MARCHON_FOLDER, "log_envio_api.log")  # Caminho do log
+
+# Configuração do log
+logging.basicConfig(filename=LOG_FILE, level=logging.INFO, format="%(asctime)s - %(message)s")
 
 # Configurações do SFTP
 SFTP_HOST = 'sftp.marchon.com.br'
