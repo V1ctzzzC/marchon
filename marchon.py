@@ -15,8 +15,12 @@ from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
 
-# Definir o caminho para a pasta "marchon"
+# Definir o caminho para o repositório "marchon"
 MARCHON_FOLDER = os.path.join(os.getcwd(), 'marchon')  # Obtém o diretório atual
+
+# Criar o diretório 'marchon' se não existir
+if not os.path.exists(MARCHON_FOLDER):
+    os.makedirs(MARCHON_FOLDER)
 
 # Configurações do SFTP
 SFTP_HOST = 'sftp.marchon.com.br'
@@ -28,7 +32,7 @@ FILE_TO_CHECK = 'estoque_disponivel.csv'
 
 # Configuração da API
 API_URL = 'https://api.bling.com.br/Api/v3/estoques'
-LOG_FILE = os.path.join(MARCHON_FOLDER, "log_envio_api.log")  # Atualiza o caminho do log
+LOG_FILE = os.path.join(MARCHON_FOLDER, "log_envio_api.log")  # Caminho do log
 TOKEN_FILE = os.path.join(MARCHON_FOLDER, "token_novo.json")  # Caminho do token
 BLING_AUTH_URL = "https://api.bling.com.br/Api/v3/oauth/token"
 BASIC_AUTH = ("19f357c5eccab671fe86c94834befff9b30c3cea", "0cf843f8d474ebcb3f398df79077b161edbc6138bcd88ade942e1722303a")
@@ -81,7 +85,7 @@ def ler_planilha_sftp(caminho_arquivo):
         return None
 
 def ler_planilha_usuario():
-    """Lê os dados da planilha estoque.xlsx da pasta 'marchon'."""
+    """Lê os dados da planilha estoque.xlsx da pasta do repositório 'marchon'."""
     caminho_planilha = os.path.join(MARCHON_FOLDER, 'Estoque.xlsx')  # Altere para o nome correto do arquivo
 
     if not os.path.exists(caminho_planilha):
@@ -109,7 +113,7 @@ def buscar_correspondencias(sftp_df, usuario_df):
 
     resultado = usuario_df.merge(sftp_df, on="codigo_produto", how="left")
 
-    # Salvar os resultados em um arquivo no diretório marchon
+    # Salvar os resultados em um arquivo no diretório 'marchon'
     caminho_resultado = os.path.join(MARCHON_FOLDER, 'resultado_correspondencias.xlsx')
     resultado.to_excel(caminho_resultado, index=False)
     print(f"✅ Resultados salvos em: {caminho_resultado}")
