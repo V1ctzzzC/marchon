@@ -50,6 +50,8 @@ logging.basicConfig(filename=LOG_FILE, level=logging.INFO, format="%(asctime)s -
 # Definição do ID do depósito
 DEPOSITO_ID = 14888163276  # Substitua pelo ID do depósito desejado
 
+TOKEN_FILE = os.path.join(os.path.dirname(__file__), "token_novo.json")
+
 def registrar_log(mensagem):
     """Registra mensagens no arquivo de log e imprime na saída."""
     logging.info(mensagem)
@@ -204,6 +206,13 @@ def enviar_dados_api(resultado_df, deposito_id):
     upload_speed = total_bytes_enviados / total_time if total_time > 0 else 0
     cpu_usage = psutil.cpu_percent(interval=1)
 
+import json
+import os
+import subprocess
+import requests
+
+TOKEN_FILE = os.path.join(os.path.dirname(__file__), "token_novo.json")
+
 def baixar_token():
     """Lê o token_novo.json armazenado no diretório 'marchon'."""
     if not os.path.exists(TOKEN_FILE):
@@ -219,12 +228,10 @@ def baixar_token():
 
 def salvar_token_novo(token_data):
     """Salva o token atualizado no arquivo token_novo.json"""
-    caminho_token = os.path.join(os.path.dirname(__file__), "token_novo.json")
-    
-    with open(caminho_token, "w", encoding="utf-8") as f:
+    with open(TOKEN_FILE, "w", encoding="utf-8") as f:
         json.dump(token_data, f, indent=4)
     
-    print(f"✅ Token atualizado e salvo em: {caminho_token}")
+    print(f"✅ Token atualizado e salvo em: {TOKEN_FILE}")
 
 def commit_e_push_token():
     """Faz commit e push do token atualizado para o repositório"""
@@ -264,12 +271,12 @@ def gerar_novo_token():
         "refresh_token": refresh_token
     }
 
-    # Adicionando as credenciais do cliente no cabeçalho da solicitação
     response = requests.post(BLING_AUTH_URL, data=payload, auth=BASIC_AUTH)
 
     if response.status_code in [200, 201]:
         novo_token = response.json()
-        salvar_token(novo_token)  # Salva o novo token no diretório
+        salvar_token_novo(novo_token)  # Corrigido nome da função
+        commit_e_push_token()  # Agora faz commit e push do novo token automaticamente
         print("✅ Novo access_token gerado com sucesso!")
         return novo_token["access_token"]
     else:
@@ -278,6 +285,7 @@ def gerar_novo_token():
 def obter_access_token():
     """Sempre gera um novo access_token antes de cada execução."""
     return gerar_novo_token()
+
 
 def main():
     sftp = conectar_sftp()
