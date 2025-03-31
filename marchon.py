@@ -260,15 +260,17 @@ def main():
     baixar_arquivo_sftp(sftp, remote_file_path, local_file_path)
     sftp.close()
 
+    # Ler o arquivo baixado do SFTP
     sftp_df = ler_planilha_sftp(local_file_path)
     usuario_df = ler_planilha_usuario()
 
     if sftp_df is None or usuario_df is None:
         return
 
+    # Buscar correspondências entre os dados do SFTP e do usuário
     resultados = buscar_correspondencias(sftp_df, usuario_df)
 
-    # Os resultados serão salvos automaticamente no diretório 'marchon'
+    # Enviar dados para a API do Bling
     enviar_dados_api(resultados, DEPOSITO_ID)
 
     # Enviar o e-mail com o relatório após o envio dos dados
