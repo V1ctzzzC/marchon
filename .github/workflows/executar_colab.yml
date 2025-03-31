@@ -1,24 +1,26 @@
-name: Executar Notebook no Colab
+name: Executar Script Diariamente
 
 on:
   schedule:
-    - cron: '0 12 * * *'  # 9h da manhã no Brasil (UTC+0 é 12h)
+    - cron: '0 12 * * *'  # Executa diariamente às 9h (UTC-3)
   workflow_dispatch:  # Permite execução manual
 
 jobs:
-  run-colab:
+  run-script:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout do repositório
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
 
       - name: Configurar Python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v2
         with:
-          python-version: '3.9'
+          python-version: '3.x'  # Use a versão desejada
 
-      - name: Instalar Jupyter
-        run: pip install notebook
+      - name: Instalar dependências
+        run: |
+          pip install requests paramiko pandas pytz Flask openpyxl  # Adicione outras dependências necessárias
 
-      - name: Executar Notebook
-        run: jupyter nbconvert --execute --to notebook --inplace marchon_py.ipynb
+      - name: Executar o script
+        run: python marchon/marchon.py  # Substitua pelo nome do seu arquivo
