@@ -119,13 +119,6 @@ def buscar_correspondencias(sftp_df, usuario_df):
 
     resultado = usuario_df.merge(sftp_df, on="codigo_produto", how="left")
 
-    # Caminho para salvar o resultado no repositório
-    caminho_resultado = os.path.join(os.path.dirname(__file__), 'resultado_correspondencias.xlsx')
-    
-    # Salvar os resultados em um arquivo no diretório 'marchon'
-    resultado.to_excel(caminho_resultado, index=False)
-    print(f"✅ Resultados salvos em: {caminho_resultado}")
-
     return resultado
 
 
