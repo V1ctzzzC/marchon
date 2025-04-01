@@ -122,16 +122,30 @@ def buscar_correspondencias(sftp_df, usuario_df):
 
     resultado = usuario_df.merge(sftp_df, on="codigo_produto", how="left")
 
-    # Caminho para salvar o resultado no repositório
-    caminho_resultado = os.path.join(os.path.dirname(__file__), 'resultado_correspondencias.xlsx')
-    
-    # Salvar os resultados em um arquivo no diretório 'marchon'
+    # Caminho para salvar os resultados no repositório
+    caminho_resultado = os.path.join(os.path.dirname(__file__), "resultado_correspondencias.xlsx")
+
+    # Salvar os resultados em um arquivo
     resultado.to_excel(caminho_resultado, index=False)
     print(f"✅ Resultados salvos em: {caminho_resultado}")
 
     return resultado
 
+def commit_e_push_resultados():
+    """Faz commit e push do arquivo resultado_correspondencias.xlsx para o repositório"""
+    try:
+        # Configurar identidade do Git
+        subprocess.run(["git", "config", "--global", "user.name", "github-actions[bot]"], check=True)
+        subprocess.run(["git", "config", "--global", "user.email", "github-actions[bot]@users.noreply.github.com"], check=True)
 
+        # Adiciona o arquivo e faz commit
+        subprocess.run(["git", "add", "resultado_correspondencias.xlsx"], check=True)
+        subprocess.run(["git", "commit", "-m", "Atualizando resultado_correspondencias.xlsx"], check=True)
+        subprocess.run(["git", "push"], check=True)
+        
+        print("✅ Resultados commitados e enviados para o repositório!")
+    except subprocess.CalledProcessError as e:
+        print(f"❌ Erro ao tentar fazer commit e push: {e}")
 
 def log_envio(mensagem):
     """Registra mensagens de envio no log."""
@@ -313,7 +327,8 @@ def main():
     
     # Salvar resultados no repositório
     salvar_resultados(resultados)
-
+    # Fazer commit e push dos resultados
+    commit_e_push_resultados()
     # Enviar dados para a API do Bling
     enviar_dados_api(resultados, DEPOSITO_ID)
 
