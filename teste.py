@@ -107,27 +107,6 @@ def ler_planilha_usuario():
         print(f"❌ Erro ao ler a planilha {caminho_planilha}: {e}")
         return None
 
-def ler_planilha_usuario_10():
-    """Lê os dados da planilha Estoque10.xlsx da pasta do repositório 'marchon'."""
-    caminho_planilha = os.path.join('Estoque10.xlsx')  # Altere para o nome correto do arquivo
-
-    if not os.path.exists(caminho_planilha):
-        print("⚠ Erro: A planilha Estoque10 não pôde ser encontrada.")
-        return None
-
-    try:
-        df = pd.read_excel(caminho_planilha)
-        if df.shape[1] < 3:
-            raise ValueError("A planilha Estoque10 deve conter pelo menos 3 colunas.")
-
-        return pd.DataFrame({
-            "id_usuario": df.iloc[:, 1].astype(str).str.strip(),
-            "codigo_produto": df.iloc[:, 2].astype(str).str.strip()
-        })
-    except Exception as e:
-        print(f"❌ Erro ao ler a planilha Estoque10: {e}")
-        return None
-
 def buscar_correspondencias(sftp_df, usuario_df):
     """Faz a correspondência entre os produtos do usuário e os do SFTP."""
     if sftp_df is None or usuario_df is None:
@@ -321,15 +300,14 @@ def main():
     # Ler os arquivos baixados do SFTP
     sftp_df = ler_planilha_sftp(local_file_path)
     sftp_df_10 = ler_planilha_sftp(local_file_path_10)
-    usuario_df = ler_planilha_usuario()
-    usuario_df_10 = ler_planilha_usuario_10()  # Função para ler Estoque10.xlsx
+    usuario_df = ler_planilha_usuario()  # Usar o mesmo arquivo para ambos
 
-    if sftp_df is None or usuario_df is None or sftp_df_10 is None or usuario_df_10 is None:
+    if sftp_df is None or usuario_df is None or sftp_df_10 is None:
         return
 
     # Buscar correspondências entre os dados do SFTP e do usuário
     resultados = buscar_correspondencias(sftp_df, usuario_df)
-    resultados_10 = buscar_correspondencias(sftp_df_10, usuario_df_10)
+    resultados_10 = buscar_correspondencias(sftp_df_10, usuario_df)
 
     # Salvar resultados no repositório
     commit_e_push_resultados()
