@@ -24,7 +24,7 @@ if not os.path.exists(MARCHON_FOLDER):
     os.makedirs(MARCHON_FOLDER)
 
 # Configuração da API
-LOG_FILE = os.path.join("log_envio_api.log")  # Caminho do log
+LOG_FILE = os.path.join("log_envio_api_10.log")  # Caminho do log
 
 # Configuração do log
 logging.basicConfig(filename=LOG_FILE, level=logging.INFO, format="%(asctime)s - %(message)s")
