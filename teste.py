@@ -6,9 +6,11 @@ import os
 import json
 import psutil
 import time
+import datetime
+import pytz
+import smtplib
 import logging
 import subprocess
-import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
@@ -33,17 +35,22 @@ SFTP_PORT = 2221
 SFTP_USERNAME = 'CompreOculos'
 SFTP_PASSWORD = '@CMPCLS$2023'
 REMOTE_DIR = 'COMPREOCULOS/ESTOQUE'
-FILE_TO_CHECK = 'estoque_disponivel.csv'
-FILE_TO_CHECK_10 = 'estoque_disponivel_10.csv'  # Novo arquivo a ser baixado
+FILE_TO_CHECK = 'estoque_disponivel_10.csv'
 
 # Configuração da API
 API_URL = 'https://api.bling.com.br/Api/v3/estoques'
+LOG_FILE = os.path.join("log_envio_api.log")  # Caminho do log
 TOKEN_FILE = os.path.join("token_novo.json")  # Caminho do token
 BLING_AUTH_URL = "https://api.bling.com.br/Api/v3/oauth/token"
 BASIC_AUTH = ("19f357c5eccab671fe86c94834befff9b30c3cea", "0cf843f8d474ebcb3f398df79077b161edbc6138bcd88ade942e1722303a")
 
+# Configuração do log
+logging.basicConfig(filename=LOG_FILE, level=logging.INFO, format="%(asctime)s - %(message)s")
+
 # Definição do ID do depósito
 DEPOSITO_ID = 14888163276  # Substitua pelo ID do depósito desejado
+
+TOKEN_FILE = os.path.join(os.path.dirname(__file__), "token_novo.json")
 
 def registrar_log(mensagem):
     """Registra mensagens no arquivo de log e imprime na saída."""
@@ -116,7 +123,7 @@ def buscar_correspondencias(sftp_df, usuario_df):
     resultado = usuario_df.merge(sftp_df, on="codigo_produto", how="left")
 
     # Caminho para salvar os resultados no repositório
-    caminho_resultado = os.path.join(MARCHON_FOLDER, "resultado_correspondencias.xlsx")
+    caminho_resultado = os.path.join(os.path.dirname(__file__), "resultado_correspondencias_10.xlsx")
 
     # Salvar os resultados em um arquivo
     resultado.to_excel(caminho_resultado, index=False)
@@ -140,6 +147,10 @@ def commit_e_push_resultados():
     except subprocess.CalledProcessError as e:
         print(f"❌ Erro ao tentar fazer commit e push: {e}")
 
+def log_envio(mensagem):
+    """Registra mensagens de envio no log."""
+    registrar_log(mensagem)
+
 def enviar_dados_api(resultado_df, deposito_id):
     """Envia os dados processados para a API do Bling."""
     if resultado_df.empty:
@@ -158,9 +169,11 @@ def enviar_dados_api(resultado_df, deposito_id):
     session = requests.Session()
     session.headers.update(headers)
 
-    print("\n🔍 Iniciando envio de dados para a API...\n")
+    log_envio("\n🔍 Iniciando envio de dados para a API...\n")
     # Contador de envios bem-sucedidos
     contador_envios = 0
+    total_bytes_enviados = 0
+    start_time = time.time()
 
     for _, row in resultado_df.iterrows():
         if pd.notna(row["balanco"]) and pd.notna(row["id_usuario"]):
@@ -173,56 +186,46 @@ def enviar_dados_api(resultado_df, deposito_id):
                     "id": deposito_id
                 },
                 "operacao": "B",
+                "preco": 100,
+                "custo": 10,
                 "quantidade": row["balanco"],
                 "observacoes": "Atualização de estoque via script"
             }
             try:
                 # Verifica se o balanço é maior que zero antes de enviar
                 if row["balanco"] > 0:
+                    send_start_time = time.time()  # Início do envio
                     response = session.post(API_URL, json=payload)
+                    send_end_time = time.time()  # Fim do envio
+                    total_bytes_enviados += len(json.dumps(payload).encode('utf-8'))
+
+                    log_msg = f"\n📦 Enviado para API:\n{json.dumps(payload, indent=2)}"
 
                     if response.status_code in [200, 201]:
-                        print(f"✔ Sucesso [{response.status_code}]: Produto {row['codigo_produto']} atualizado na API.")
+                        log_envio(f"✔ Sucesso [{response.status_code}]: Produto {row['codigo_produto']} atualizado na API.{log_msg}")
                         contador_envios += 1  # Incrementa o contador de envios
                     else:
-                        print(f"❌ Erro [{response.status_code}]: {response.text}")
+                        log_envio(f"❌ Erro [{response.status_code}]: {response.text}{log_msg}")
+                    # Calcular o tempo de resposta do servidor
+                    response_time = send_end_time - send_start_time
+                    log_envio(f"⏱ Tempo de resposta do servidor para {row['codigo_produto']}: {response_time:.2f} segundos")
                 else:
-                    print(f"⚠ Produto {row['codigo_produto']} não enviado, balanço igual a zero.")
+                    log_envio(f"⚠ Produto {row['codigo_produto']} não enviado, balanço igual a zero.")
 
             except Exception as e:
-                print(f"❌ Erro ao enviar {row['codigo_produto']}: {e}")
+                log_envio(f"❌ Erro ao enviar {row['codigo_produto']}: {e}")
 
-    print(f"✅ Total de envios bem-sucedidos: {contador_envios}")
+    end_time = time.time()
+    total_time = end_time - start_time
+    upload_speed = total_bytes_enviados / total_time if total_time > 0 else 0
+    cpu_usage = psutil.cpu_percent(interval=1)
 
-def obter_access_token():
-    """Sempre gera um novo access_token antes de cada execução."""
-    return gerar_novo_token()
+import json
+import os
+import subprocess
+import requests
 
-def gerar_novo_token():
-    """Gera um novo access_token e salva no diretório 'marchon'."""
-    refresh_token = obter_refresh_token()
-    if not refresh_token:
-        raise ValueError("⚠ Refresh token não encontrado.")
-
-    payload = {
-        "grant_type": "refresh_token",
-        "refresh_token": refresh_token
-    }
-
-    response = requests.post(BLING_AUTH_URL, data=payload, auth=BASIC_AUTH)
-
-    if response.status_code in [200, 201]:
-        novo_token = response.json()
-        salvar_token_novo(novo_token)  # Corrigido nome da função
-        print("✅ Novo access_token gerado com sucesso!")
-        return novo_token["access_token"]
-    else:
-        raise Exception(f"❌ Erro ao gerar novo token: {response.status_code} - {response.text}")
-
-def obter_refresh_token():
-    """Obtém o refresh_token do arquivo JSON baixado."""
-    data = baixar_token()
-    return data.get("refresh_token") if data else None
+TOKEN_FILE = os.path.join(os.path.dirname(__file__), "token_novo.json")
 
 def baixar_token():
     """Lê o token_novo.json armazenado no diretório 'marchon'."""
@@ -243,6 +246,99 @@ def salvar_token_novo(token_data):
         json.dump(token_data, f, indent=4)
     
     print(f"✅ Token atualizado e salvo em: {TOKEN_FILE}")
+
+def commit_e_push_token():
+    """Faz commit e push do token atualizado para o repositório"""
+    try:
+        subprocess.run(["git", "add", "token_novo.json"], check=True)
+        subprocess.run(["git", "commit", "-m", "🔄 Atualizando token_novo.json"], check=True)
+        subprocess.run(["git", "push"], check=True)
+        print("✅ Token atualizado e enviado para o repositório!")
+    except subprocess.CalledProcessError as e:
+        print(f"❌ Erro ao tentar fazer commit e push: {e}")
+
+def salvar_resultados(resultados):
+    """Salva os resultados em um arquivo e faz commit no repositório."""
+    caminho_resultados = os.path.join(os.path.dirname(__file__), "resultado_correspondencias.xlsx")
+    resultados.to_excel(caminho_resultados, index=False)
+
+    print(f"✅ Resultados salvos em: {caminho_resultados}")
+
+    # Adiciona o arquivo e faz commit
+    subprocess.run(["git", "add", caminho_resultados])
+    subprocess.run(["git", "commit", "-m", "Atualizando resultado_correspondencias.xlsx"])
+    subprocess.run(["git", "push"])
+
+def obter_refresh_token():
+    """Obtém o refresh_token do arquivo JSON baixado."""
+    data = baixar_token()
+    return data.get("refresh_token") if data else None
+
+def gerar_novo_token():
+    """Gera um novo access_token e salva no diretório 'marchon'."""
+    refresh_token = obter_refresh_token()
+    if not refresh_token:
+        raise ValueError("⚠ Refresh token não encontrado.")
+
+    payload = {
+        "grant_type": "refresh_token",
+        "refresh_token": refresh_token
+    }
+
+    response = requests.post(BLING_AUTH_URL, data=payload, auth=BASIC_AUTH)
+
+    if response.status_code in [200, 201]:
+        novo_token = response.json()
+        salvar_token_novo(novo_token)  # Corrigido nome da função
+        commit_e_push_token()  # Agora faz commit e push do novo token automaticamente
+        print("✅ Novo access_token gerado com sucesso!")
+        return novo_token["access_token"]
+    else:
+        raise Exception(f"❌ Erro ao gerar novo token: {response.status_code} - {response.text}")
+
+def obter_access_token():
+    """Sempre gera um novo access_token antes de cada execução."""
+    return gerar_novo_token()
+
+
+def main():
+    sftp = conectar_sftp()
+    if not sftp:
+        print("Conexão com o SFTP falhou. Finalizando o script.")
+        return
+
+    # Caminho local para salvar o arquivo baixado
+    local_file_path = os.path.join(MARCHON_FOLDER, FILE_TO_CHECK)
+    remote_file_path = f"{REMOTE_DIR}/{FILE_TO_CHECK}"
+
+    # Baixar o arquivo do SFTP
+    baixar_arquivo_sftp(sftp, remote_file_path, local_file_path)
+    sftp.close()
+
+    # Ler o arquivo baixado do SFTP
+    sftp_df = ler_planilha_sftp(local_file_path)
+    usuario_df = ler_planilha_usuario()
+
+    if sftp_df is None or usuario_df is None:
+        return
+
+    # Buscar correspondências entre os dados do SFTP e do usuário
+    resultados = buscar_correspondencias(sftp_df, usuario_df)
+    
+    # Salvar resultados no repositório
+    salvar_resultados(resultados)
+    # Fazer commit e push dos resultados
+    commit_e_push_resultados()
+    # Enviar dados para a API do Bling
+    enviar_dados_api(resultados, DEPOSITO_ID)
+
+    # Enviar o e-mail com o relatório após o envio dos dados
+    enviar_email_com_anexo(
+        "victor@compreoculos.com.br",
+        "Relatório de Estoque",
+        "Segue em anexo o relatório atualizado da Marchon.",
+        os.path.join("resultado_correspondencias.xlsx")  # O arquivo que você gerou anteriormente
+    )
 
 def enviar_email_com_anexo(destinatario, assunto, mensagem, anexo_path):
     """Envia um e-mail com um arquivo anexo."""
@@ -276,61 +372,6 @@ def enviar_email_com_anexo(destinatario, assunto, mensagem, anexo_path):
         print(f"📧 E-mail enviado com sucesso para {destinatario}")
     except Exception as e:
         print(f"❌ Erro ao enviar e-mail: {e}")
-
-def main():
-    sftp = conectar_sftp()
-    if not sftp:
-        print("Conexão com o SFTP falhou. Finalizando o script.")
-        return
-
-    # Caminho local para salvar os arquivos baixados
-    local_file_path = os.path.join(MARCHON_FOLDER, FILE_TO_CHECK)
-    remote_file_path = f"{REMOTE_DIR}/{FILE_TO_CHECK}"
-
-    # Baixar o arquivo estoque_disponivel.csv do SFTP
-    baixar_arquivo_sftp(sftp, remote_file_path, local_file_path)
-
-    # Baixar o arquivo estoque_disponivel_10.csv do SFTP
-    local_file_path_10 = os.path.join(MARCHON_FOLDER, FILE_TO_CHECK_10)
-    remote_file_path_10 = f"{REMOTE_DIR}/{FILE_TO_CHECK_10}"
-    baixar_arquivo_sftp(sftp, remote_file_path_10, local_file_path_10)
-
-    sftp.close()
-
-    # Ler os arquivos baixados do SFTP
-    sftp_df = ler_planilha_sftp(local_file_path)
-    sftp_df_10 = ler_planilha_sftp(local_file_path_10)
-    usuario_df = ler_planilha_usuario()  # Usar o mesmo arquivo para ambos
-
-    if sftp_df is None or usuario_df is None or sftp_df_10 is None:
-        return
-
-    # Buscar correspondências entre os dados do SFTP e do usuário
-    resultados = buscar_correspondencias(sftp_df, usuario_df)
-    resultados_10 = buscar_correspondencias(sftp_df_10, usuario_df)
-
-    # Salvar resultados no repositório
-    commit_e_push_resultados()
-    
-    # Enviar dados para a API do Bling
-    enviar_dados_api(resultados, DEPOSITO_ID)
-    enviar_dados_api(resultados_10, DEPOSITO_ID)  # Enviar dados do Estoque10
-
-    # Enviar o e-mail com o relatório após o envio dos dados
-    enviar_email_com_anexo(
-        "victor@compreoculos.com.br",
-        "Relatório de Estoque",
-        "Segue em anexo o relatório atualizado da Marchon.",
-        os.path.join(MARCHON_FOLDER, "resultado_correspondencias.xlsx")  # O arquivo que você gerou anteriormente
-    )
-    
-    # Enviar e-mail para Estoque10
-    enviar_email_com_anexo(
-        "victor@compreoculos.com.br",
-        "Relatório de Estoque 10",
-        "Enviado marchon 10.",
-        os.path.join(MARCHON_FOLDER, "resultado_correspondencias.xlsx")  # O arquivo que você gerou anteriormente
-    )
 
 if __name__ == "__main__":
     main()
