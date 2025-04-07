@@ -114,7 +114,7 @@ def ler_planilha_usuario():
         print(f"❌ Erro ao ler a planilha {caminho_planilha}: {e}")
         return None
 
-def buscar_correspondencias(sftp_df, usuario_df):
+def buscar_correspondencias_10(sftp_df, usuario_df):
     """Faz a correspondência entre os produtos do usuário e os do SFTP."""
     if sftp_df is None or usuario_df is None:
         print("Erro: Arquivos de entrada não carregados corretamente.")
@@ -139,8 +139,8 @@ def commit_e_push_resultados():
         subprocess.run(["git", "config", "--global", "user.email", "github-actions[bot]@users.noreply.github.com"], check=True)
 
         # Adiciona o arquivo e faz commit
-        subprocess.run(["git", "add", "resultado_correspondencias.xlsx"], check=True)
-        subprocess.run(["git", "commit", "-m", "Atualizando resultado_correspondencias.xlsx"], check=True)
+        subprocess.run(["git", "add", "resultado_correspondencias_10.xlsx"], check=True)
+        subprocess.run(["git", "commit", "-m", "Atualizando resultado_correspondencias_10.xlsx"], check=True)
         subprocess.run(["git", "push"], check=True)
         
         print("✅ Resultados commitados e enviados para o repositório!")
@@ -266,7 +266,7 @@ def salvar_resultados(resultados):
 
     # Adiciona o arquivo e faz commit
     subprocess.run(["git", "add", caminho_resultados])
-    subprocess.run(["git", "commit", "-m", "Atualizando resultado_correspondencias.xlsx"])
+    subprocess.run(["git", "commit", "-m", "Atualizando resultado_correspondencias_10.xlsx"])
     subprocess.run(["git", "push"])
 
 def obter_refresh_token():
@@ -323,7 +323,7 @@ def main():
         return
 
     # Buscar correspondências entre os dados do SFTP e do usuário
-    resultados = buscar_correspondencias(sftp_df, usuario_df)
+    resultados = buscar_correspondencias_10(sftp_df, usuario_df)
     
     # Salvar resultados no repositório
     salvar_resultados(resultados)
@@ -336,8 +336,8 @@ def main():
     enviar_email_com_anexo(
         "victor@compreoculos.com.br",
         "Relatório de Estoque",
-        "Segue em anexo o relatório atualizado da Marchon.",
-        os.path.join("resultado_correspondencias.xlsx")  # O arquivo que você gerou anteriormente
+        "Segue em anexo o relatório atualizado da Marchon10.",
+        os.path.join("resultado_correspondencias_10.xlsx")  # O arquivo que você gerou anteriormente
     )
 
 def enviar_email_com_anexo(destinatario, assunto, mensagem, anexo_path):
