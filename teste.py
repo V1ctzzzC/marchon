@@ -39,7 +39,7 @@ FILE_TO_CHECK = 'estoque_disponivel_10.csv'
 
 # Configuração da API
 API_URL = 'https://api.bling.com.br/Api/v3/estoques'
-LOG_FILE = os.path.join("log_envio_api.log")  # Caminho do log
+LOG_FILE = os.path.join("log_envio_api_10.log")  # Caminho do log
 TOKEN_FILE = os.path.join("token_novo.json")  # Caminho do token
 BLING_AUTH_URL = "https://api.bling.com.br/Api/v3/oauth/token"
 BASIC_AUTH = ("19f357c5eccab671fe86c94834befff9b30c3cea", "0cf843f8d474ebcb3f398df79077b161edbc6138bcd88ade942e1722303a")
@@ -132,7 +132,7 @@ def buscar_correspondencias_10(sftp_df, usuario_df):
     return resultado
 
 def commit_e_push_resultados():
-    """Faz commit e push do arquivo resultado_correspondencias.xlsx para o repositório"""
+    """Faz commit e push do arquivo resultado_correspondencias_10.xlsx para o repositório"""
     try:
         # Configurar identidade do Git
         subprocess.run(["git", "config", "--global", "user.name", "github-actions[bot]"], check=True)
@@ -259,7 +259,7 @@ def commit_e_push_token():
 
 def salvar_resultados(resultados):
     """Salva os resultados em um arquivo e faz commit no repositório."""
-    caminho_resultados = os.path.join(os.path.dirname(__file__), "resultado_correspondencias.xlsx")
+    caminho_resultados = os.path.join(os.path.dirname(__file__), "resultado_correspondencias_10.xlsx")
     resultados.to_excel(caminho_resultados, index=False)
 
     print(f"✅ Resultados salvos em: {caminho_resultados}")
