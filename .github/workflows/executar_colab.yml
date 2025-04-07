@@ -28,3 +28,6 @@ jobs:
 
       - name: Executar o script
         run: python teste.py  # Substitua pelo nome do seu arquivo
+
+      - name: Executar Marchon10
+        run: python teste.py
