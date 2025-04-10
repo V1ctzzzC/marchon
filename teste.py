@@ -146,6 +146,11 @@ def commit_e_push_resultados():
         print("✅ Resultados commitados e enviados para o repositório!")
     except subprocess.CalledProcessError as e:
         print(f"❌ Erro ao tentar fazer commit e push: {e}")
+    
+    if subprocess.run(["git", "diff-index", "--quiet", "HEAD"], check=False).returncode != 0:
+    subprocess.run(["git", "commit", "-m", "Atualizando resultado_correspondencias_10.xlsx"], check=True)
+else:
+    print("⚠️ Nenhuma alteração para comitar.")
 
 def log_envio(mensagem):
     """Registra mensagens de envio no log."""
