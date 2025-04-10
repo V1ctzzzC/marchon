@@ -205,6 +205,7 @@ def enviar_dados_api(resultado_df, deposito_id):
                     if response.status_code in [200, 201]:
                         log_envio(f"✔ Sucesso [{response.status_code}]: Produto {row['codigo_produto']} atualizado na API.{log_msg}")
                         contador_envios += 1  # Incrementa o contador de envios
+                        sucesso += 1  # ✅ Incrementa o contador de sucessos
                     else:
                         log_envio(f"❌ Erro [{response.status_code}]: {response.text}{log_msg}")
                     # Calcular o tempo de resposta do servidor
