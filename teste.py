@@ -24,7 +24,7 @@ if not os.path.exists(MARCHON_FOLDER):
     os.makedirs(MARCHON_FOLDER)
 
 # Configuração da API
-LOG_FILE = os.path.join("log_envio_api_10.log")  # Caminho do log
+LOG_FILE = os.path.join("log_envio_api.log")  # Caminho do log
 
 # Configuração do log
 logging.basicConfig(filename=LOG_FILE, level=logging.INFO, format="%(asctime)s - %(message)s")
@@ -39,7 +39,7 @@ FILE_TO_CHECK = 'estoque_disponivel_10.csv'
 
 # Configuração da API
 API_URL = 'https://api.bling.com.br/Api/v3/estoques'
-LOG_FILE = os.path.join("log_envio_api_10.log")  # Caminho do log
+LOG_FILE = os.path.join("log_envio_api.log")  # Caminho do log
 TOKEN_FILE = os.path.join("token_novo.json")  # Caminho do token
 BLING_AUTH_URL = "https://api.bling.com.br/Api/v3/oauth/token"
 BASIC_AUTH = ("19f357c5eccab671fe86c94834befff9b30c3cea", "0cf843f8d474ebcb3f398df79077b161edbc6138bcd88ade942e1722303a")
@@ -114,7 +114,7 @@ def ler_planilha_usuario():
         print(f"❌ Erro ao ler a planilha {caminho_planilha}: {e}")
         return None
 
-def buscar_correspondencias_10(sftp_df, usuario_df):
+def buscar_correspondencias(sftp_df, usuario_df):
     """Faz a correspondência entre os produtos do usuário e os do SFTP."""
     if sftp_df is None or usuario_df is None:
         print("Erro: Arquivos de entrada não carregados corretamente.")
@@ -132,7 +132,7 @@ def buscar_correspondencias_10(sftp_df, usuario_df):
     return resultado
 
 def commit_e_push_resultados():
-    """Faz commit e push do arquivo resultado_correspondencias_10.xlsx para o repositório"""
+    """Faz commit e push do arquivo resultado_correspondencias.xlsx para o repositório"""
     try:
         # Configurar identidade do Git
         subprocess.run(["git", "config", "--global", "user.name", "github-actions[bot]"], check=True)
@@ -323,7 +323,7 @@ def main():
         return
 
     # Buscar correspondências entre os dados do SFTP e do usuário
-    resultados = buscar_correspondencias_10(sftp_df, usuario_df)
+    resultados = buscar_correspondencias(sftp_df, usuario_df)
     
     # Salvar resultados no repositório
     salvar_resultados(resultados)
@@ -335,9 +335,9 @@ def main():
     # Enviar o e-mail com o relatório após o envio dos dados
     enviar_email_com_anexo(
         "victor@compreoculos.com.br",
-        "Relatório de Estoque",
+        "Relatório de Estoque Marchon 10",
         "Segue em anexo o relatório atualizado da Marchon10.",
-        os.path.join("resultado_correspondencias_10.xlsx")  # O arquivo que você gerou anteriormente
+        os.path.join("resultado_correspondencias.xlsx")  # O arquivo que você gerou anteriormente
     )
 
 def enviar_email_com_anexo(destinatario, assunto, mensagem, anexo_path):
