@@ -147,10 +147,6 @@ def commit_e_push_resultados():
     except subprocess.CalledProcessError as e:
         print(f"❌ Erro ao tentar fazer commit e push: {e}")
     
-    if subprocess.run(["git", "diff-index", "--quiet", "HEAD"], check=False).returncode != 0:
-    subprocess.run(["git", "commit", "-m", "Atualizando resultado_correspondencias_10.xlsx"], check=True)
-else:
-    print("⚠️ Nenhuma alteração para comitar.")
 
 def log_envio(mensagem):
     """Registra mensagens de envio no log."""
@@ -270,14 +266,18 @@ def salvar_resultados(resultados):
         resultados.to_excel(caminho_arquivo, index=False)
         print(f"✅ Resultados salvos em: {caminho_arquivo}")
 
-        # Commit e push para o repositório
+        # Adiciona o arquivo ao índice
         subprocess.run(["git", "add", caminho_arquivo], check=True)
-        subprocess.run(["git", "commit", "-m", "Atualizando resultado_correspondencias_10.xlsx"], check=True)
-        subprocess.run(["git", "push"], check=True)
-        print("✅ Resultados commitados e enviados para o repositório!")
-    except Exception as e:
-        print(f"❌ Erro ao salvar ou enviar os resultados: {e}")
 
+        # Verifica se há alterações para comitar
+        if subprocess.run(["git", "diff-index", "--quiet", "HEAD"], check=False).returncode != 0:
+            subprocess.run(["git", "commit", "-m", "Atualizando resultado_correspondencias_10.xlsx"], check=True)
+            subprocess.run(["git", "push"], check=True)
+            print("✅ Resultados commitados e enviados para o repositório!")
+        else:
+            print("⚠️ Nenhuma alteração para comitar.")
+    except subprocess.CalledProcessError as e:
+        print(f"❌ Erro ao salvar ou enviar os resultados: {e}")
 
 def obter_refresh_token():
     """Obtém o refresh_token do arquivo JSON baixado."""
