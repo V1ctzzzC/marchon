@@ -132,7 +132,7 @@ def buscar_correspondencias(sftp_df, usuario_df):
     return resultado
 
 def commit_e_push_resultados():
-    """Faz commit e push do arquivo resultado_correspondencias.xlsx para o repositório"""
+    """Faz commit e push do arquivo resultado_correspondencias_10.xlsx para o repositório"""
     try:
         # Configurar identidade do Git
         subprocess.run(["git", "config", "--global", "user.name", "github-actions[bot]"], check=True)
@@ -351,7 +351,7 @@ def main():
         "victor@compreoculos.com.br",
         "Relatório de Estoque Marchon 10",
         "Segue em anexo o relatório atualizado da Marchon10.",
-        os.path.join("resultado_correspondencias.xlsx")  # O arquivo que você gerou anteriormente
+        os.path.join("resultado_correspondencias_10.xlsx")  # O arquivo que você gerou anteriormente
     )
 
 def enviar_email_com_anexo(destinatario, assunto, mensagem, anexo_path):
