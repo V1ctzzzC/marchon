@@ -221,9 +221,10 @@ def enviar_dados_api(resultado_df, deposito_id):
     total_time = end_time - start_time
     upload_speed = total_bytes_enviados / total_time if total_time > 0 else 0
     cpu_usage = psutil.cpu_percent(interval=1)
+    return sucesso
     print(f"\n✅ {sucesso} produtos foram enviados para a API com sucesso.")
 
-return sucesso
+
 
 import json
 import os
