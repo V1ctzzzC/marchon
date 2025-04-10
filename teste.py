@@ -223,6 +223,8 @@ def enviar_dados_api(resultado_df, deposito_id):
     cpu_usage = psutil.cpu_percent(interval=1)
     print(f"\n✅ {sucesso} produtos foram enviados para a API com sucesso.")
 
+return sucesso
+
 import json
 import os
 import subprocess
