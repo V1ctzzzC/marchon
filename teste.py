@@ -339,6 +339,10 @@ def main():
     # Enviar dados para a API do Bling
     enviar_dados_api(resultados, DEPOSITO_ID)
 
+     # Enviar dados para a API do Bling
+    sucesso = enviar_dados_api(resultados, DEPOSITO_ID)
+    print(f"\n✅ {sucesso} produtos foram enviados para a API com sucesso.")
+
     # Enviar o e-mail com o relatório após o envio dos dados
     enviar_email_com_anexo(
         "victor@compreoculos.com.br",
@@ -380,8 +384,6 @@ def enviar_email_com_anexo(destinatario, assunto, mensagem, anexo_path):
     except Exception as e:
         print(f"❌ Erro ao enviar e-mail: {e}")
 
-sucesso = enviar_dados_api(resultado_df, deposito_id)
-print(f"\n✅ {sucesso} produtos foram enviados para a API com sucesso.")
 
 if __name__ == "__main__":
     main()
