@@ -155,7 +155,7 @@ def enviar_dados_api(resultado_df, deposito_id):
     """Envia os dados processados para a API do Bling."""
     if resultado_df.empty:
         print("Nenhum dado para enviar à API.")
-        return
+        return 0
 
     # Ajustar o estoque antes de enviar
     resultado_df['balanco'] = resultado_df['balanco'].apply(lambda x: max(0, x - 10))
@@ -170,11 +170,10 @@ def enviar_dados_api(resultado_df, deposito_id):
     session.headers.update(headers)
 
     log_envio("\n🔍 Iniciando envio de dados para a API...\n")
-    # Contador de envios bem-sucedidos
+
     contador_envios = 0
     total_bytes_enviados = 0
     start_time = time.time()
-    sucesso = 0  # contador de sucesso
 
     for _, row in resultado_df.iterrows():
         if pd.notna(row["balanco"]) and pd.notna(row["id_usuario"]):
@@ -193,27 +192,24 @@ def enviar_dados_api(resultado_df, deposito_id):
                 "observacoes": "Atualização de estoque via script"
             }
             try:
-                # Verifica se o balanço é maior que zero antes de enviar
                 if row["balanco"] > 0:
-                    send_start_time = time.time()  # Início do envio
+                    send_start_time = time.time()
                     response = session.post(API_URL, json=payload)
-                    send_end_time = time.time()  # Fim do envio
+                    send_end_time = time.time()
                     total_bytes_enviados += len(json.dumps(payload).encode('utf-8'))
 
                     log_msg = f"\n📦 Enviado para API:\n{json.dumps(payload, indent=2)}"
 
                     if response.status_code in [200, 201]:
                         log_envio(f"✔ Sucesso [{response.status_code}]: Produto {row['codigo_produto']} atualizado na API.{log_msg}")
-                        contador_envios += 1  # Incrementa o contador de envios
-                        sucesso += 1  # ✅ Incrementa o contador de sucessos
+                        contador_envios += 1
                     else:
                         log_envio(f"❌ Erro [{response.status_code}]: {response.text}{log_msg}")
-                    # Calcular o tempo de resposta do servidor
+
                     response_time = send_end_time - send_start_time
                     log_envio(f"⏱ Tempo de resposta do servidor para {row['codigo_produto']}: {response_time:.2f} segundos")
                 else:
                     log_envio(f"⚠ Produto {row['codigo_produto']} não enviado, balanço igual a zero.")
-
             except Exception as e:
                 log_envio(f"❌ Erro ao enviar {row['codigo_produto']}: {e}")
 
@@ -221,8 +217,12 @@ def enviar_dados_api(resultado_df, deposito_id):
     total_time = end_time - start_time
     upload_speed = total_bytes_enviados / total_time if total_time > 0 else 0
     cpu_usage = psutil.cpu_percent(interval=1)
-    return sucesso
-    print(f"\n✅ {sucesso} produtos foram enviados para a API com sucesso.")
+
+    return contador_envios
+
+
+sucesso = enviar_dados_api(resultado_df, deposito_id)
+print(f"\n✅ {sucesso} produtos foram enviados para a API com sucesso.")
 
 
 
