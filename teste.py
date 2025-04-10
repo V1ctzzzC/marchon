@@ -221,9 +221,6 @@ def enviar_dados_api(resultado_df, deposito_id):
     return contador_envios
 
 
-sucesso = enviar_dados_api(resultado_df, deposito_id)
-print(f"\n✅ {sucesso} produtos foram enviados para a API com sucesso.")
-
 
 
 import json
@@ -383,6 +380,7 @@ def enviar_email_com_anexo(destinatario, assunto, mensagem, anexo_path):
     except Exception as e:
         print(f"❌ Erro ao enviar e-mail: {e}")
 
+sucesso = enviar_dados_api(resultado_df, deposito_id)
 print(f"\n✅ {sucesso} produtos foram enviados para a API com sucesso.")
 
 if __name__ == "__main__":
