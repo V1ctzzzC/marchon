@@ -174,6 +174,7 @@ def enviar_dados_api(resultado_df, deposito_id):
     contador_envios = 0
     total_bytes_enviados = 0
     start_time = time.time()
+    sucesso = 0  # contador de sucesso
 
     for _, row in resultado_df.iterrows():
         if pd.notna(row["balanco"]) and pd.notna(row["id_usuario"]):
@@ -258,16 +259,20 @@ def commit_e_push_token():
         print(f"❌ Erro ao tentar fazer commit e push: {e}")
 
 def salvar_resultados(resultados):
-    """Salva os resultados em um arquivo e faz commit no repositório."""
-    caminho_resultados = os.path.join(os.path.dirname(__file__), "resultado_correspondencias_10.xlsx")
-    resultados.to_excel(caminho_resultados, index=False)
+    """Salva os resultados em um arquivo e faz commit."""
+    caminho_arquivo = os.path.join(os.path.dirname(__file__), "resultado_correspondencias_10.xlsx")
+    try:
+        resultados.to_excel(caminho_arquivo, index=False)
+        print(f"✅ Resultados salvos em: {caminho_arquivo}")
 
-    print(f"✅ Resultados salvos em: {caminho_resultados}")
+        # Commit e push para o repositório
+        subprocess.run(["git", "add", caminho_arquivo], check=True)
+        subprocess.run(["git", "commit", "-m", "Atualizando resultado_correspondencias_10.xlsx"], check=True)
+        subprocess.run(["git", "push"], check=True)
+        print("✅ Resultados commitados e enviados para o repositório!")
+    except Exception as e:
+        print(f"❌ Erro ao salvar ou enviar os resultados: {e}")
 
-    # Adiciona o arquivo e faz commit
-    subprocess.run(["git", "add", caminho_resultados])
-    subprocess.run(["git", "commit", "-m", "Atualizando resultado_correspondencias_10.xlsx"])
-    subprocess.run(["git", "push"])
 
 def obter_refresh_token():
     """Obtém o refresh_token do arquivo JSON baixado."""
@@ -372,6 +377,8 @@ def enviar_email_com_anexo(destinatario, assunto, mensagem, anexo_path):
         print(f"📧 E-mail enviado com sucesso para {destinatario}")
     except Exception as e:
         print(f"❌ Erro ao enviar e-mail: {e}")
+
+print(f"\n✅ {sucesso} produtos foram enviados para a API com sucesso.")
 
 if __name__ == "__main__":
     main()
