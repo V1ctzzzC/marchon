@@ -95,7 +95,7 @@ def ler_planilha_sftp(caminho_arquivo):
 
 def ler_planilha_usuario():
     """Lê os dados da planilha estoque.xlsx da pasta do repositório 'marchon'."""
-    caminho_planilha = os.path.join('Estoque.xlsx')  # Altere para o nome correto do arquivo
+    caminho_planilha = os.path.join('Estoque_10.xlsx')  # Altere para o nome correto do arquivo
 
     if not os.path.exists(caminho_planilha):
         print("⚠ Erro: A planilha não pôde ser encontrada.")
