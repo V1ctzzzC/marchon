@@ -122,6 +122,12 @@ def buscar_correspondencias(sftp_df, usuario_df):
 
     resultado = usuario_df.merge(sftp_df, on="codigo_produto", how="left")
 
+    # Filtrar apenas os produtos com balanço maior que zero
+    resultado = resultado[resultado['balanco'] > 0]
+
+    # Ordenar os resultados pelo 'balanco' em ordem decrescente
+    resultado = resultado.sort_values(by='balanco', ascending=False)
+
     # Caminho para salvar os resultados no repositório
     caminho_resultado = os.path.join(os.path.dirname(__file__), "resultado_correspondencias_10.xlsx")
 
