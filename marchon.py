@@ -343,7 +343,7 @@ def main():
 def enviar_email_com_anexo(destinatario, assunto, mensagem, anexo_path):
     """Envia um e-mail com um arquivo anexo."""
     remetente = "victor@compreoculos.com.br"  # Altere para seu e-mail
-    senha = "Compre2024"  # Use um App Password ou método seguro para armazenar credenciais
+    senha = "hhhlzwcyucmjdqqb"  # Use um App Password ou método seguro para armazenar credenciais
 
     msg = MIMEMultipart()
     msg["From"] = remetente
