@@ -52,6 +52,10 @@ DEPOSITO_ID = 14888163276  # Substitua pelo ID do depósito desejado
 
 TOKEN_FILE = os.path.join(os.path.dirname(__file__), "token_novo.json")
 
+# Ativa ou desativa o corte de estoque
+ATIVAR_CORTE_ESTOQUE = True
+
+
 def registrar_log(mensagem):
     """Registra mensagens no arquivo de log e imprime na saída."""
     logging.info(mensagem)
@@ -121,6 +125,14 @@ def buscar_correspondencias(sftp_df, usuario_df):
         return pd.DataFrame()
 
     resultado = usuario_df.merge(sftp_df, on="codigo_produto", how="left")
+
+    if ATIVAR_CORTE_ESTOQUE:
+        print("🔧 Corte de estoque ativado: Subtraindo 10 unidades de balanços acima de 10.")
+        resultado['balanco'] = resultado['balanco'].apply(
+            lambda x: max(x - 10, 0) if pd.notna(x) and x > 10 else x
+        )
+    else:
+        print("🚫 Corte de estoque desativado.")
 
     # Filtrar apenas os produtos com balanço maior que zero
     resultado = resultado[resultado['balanco'] > 0]
