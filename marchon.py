@@ -350,14 +350,28 @@ def main():
     # Enviar dados para a API do Bling
     enviar_dados_api(resultados, DEPOSITO_ID)
 
-    # Enviar o e-mail com o relatório após o envio dos dados
+    # Calcular soma do estoque e contagem de IDs com estoque maior que 1
+    soma_estoque = resultados['balanco'].sum()
+    contagem_ids_maior_1 = resultados[resultados['balanco'] > 1].shape[0]
+
+    # Verificar se o corte de estoque está ativado
+    status_corte_estoque = "ativado" if ATIVAR_CORTE_ESTOQUE else "desativado"
+
+    # Mensagem do e-mail com resumo do estoque
+    mensagem_email = (
+        f"Soma do Estoque: {soma_estoque}\n"
+        f"Quantidade de IDs com Estoque Maior que 1: {contagem_ids_maior_1}\n"
+        f"Corte de Estoque: {status_corte_estoque}\n"
+        "Segue em anexo o relatório atualizado da Marchon."
+    )
+
+    # Enviar o e-mail com o relatório e resumo do estoque
     enviar_email_com_anexo(
         "victor@compreoculos.com.br",
         "Relatório de Estoque",
-        "Segue em anexo o relatório atualizado da Marchon.",
+        mensagem_email,
         os.path.join("resultado_correspondencias.xlsx")  # O arquivo que você gerou anteriormente
     )
-
 def enviar_email_com_anexo(destinatario, assunto, mensagem, anexo_path):
     """Envia um e-mail com um arquivo anexo."""
     remetente = "victor@compreoculos.com.br"  # Altere para seu e-mail
