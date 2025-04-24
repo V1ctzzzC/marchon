@@ -335,13 +335,10 @@ def main():
 
     # Buscar correspondências entre os dados do SFTP e do usuário
     resultados = buscar_correspondencias(sftp_df, usuario_df)
-    
-    # Salvar resultados no repositório
-    salvar_resultados(resultados)
-    # Fazer commit e push dos resultados
-    commit_e_push_resultados()
-    # Enviar dados para a API do Bling
-    enviar_dados_api(resultados, DEPOSITO_ID)
+
+    # Adicione logs para verificar o DataFrame
+    print(resultados.head())  # Mostra as primeiras linhas do DataFrame
+    print(f"Número total de itens: {resultados.shape[0]}")
 
     # Calcular soma do estoque e contagem de IDs com estoque maior ou igual a 1
     soma_estoque = resultados['balanco'].sum()
@@ -363,11 +360,12 @@ def main():
         "victor@compreoculos.com.br",
         "Relatório de Estoque",
         mensagem_email,
-        os.path.join("resultado_correspondencias.xlsx")  # O arquivo que você gerou anteriormente
+        os.path.join(MARCHON_FOLDER, "resultado_correspondencias.xlsx")  # O arquivo que você gerou anteriormente
     )
-         # Enviar dados para a API do Bling
-    sucesso = enviar_dados_api(resultados, DEPOSITO_ID)
-    print(f"\n✅ {sucesso} produtos foram enviados para a API com sucesso.")
+
+    # Print final com a contagem de IDs que foram "subidos"
+    print(f"Total de IDs processados e subidos: {resultados.shape[0]}")
+
 def enviar_email_com_anexo(destinatario, assunto, mensagem, anexo_path):
     """Envia um e-mail com um arquivo anexo."""
     remetente = "victor@compreoculos.com.br"  # Altere para seu e-mail
