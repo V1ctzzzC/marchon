@@ -17,7 +17,7 @@ from email.mime.base import MIMEBase
 from email import encoders
 
 # Ativa ou desativa o corte de estoque
-ATIVAR_CORTE_ESTOQUE = True
+ATIVAR_CORTE_ESTOQUE = False
 
 # Definição do ID do depósito
 DEPOSITO_ID = 14888163276  # Substitua pelo ID do depósito desejado
