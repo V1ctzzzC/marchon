@@ -336,9 +336,12 @@ def main():
     # Buscar correspondências entre os dados do SFTP e do usuário
     resultados = buscar_correspondencias(sftp_df, usuario_df)
 
-    # Adicione logs para verificar o DataFrame
-    print(resultados.head())  # Mostra as primeiras linhas do DataFrame
-    print(f"Número total de itens: {resultados.shape[0]}")
+    # Salvar resultados no repositório
+    salvar_resultados(resultados)
+    # Fazer commit e push dos resultados
+    commit_e_push_resultados()
+    # Enviar dados para a API do Bling
+    enviar_dados_api(resultados, DEPOSITO_ID)
 
     # Calcular soma do estoque e contagem de IDs com estoque maior ou igual a 1
     soma_estoque = resultados['balanco'].sum()
@@ -364,7 +367,8 @@ def main():
     )
 
     # Print final com a contagem de IDs que foram "subidos"
-    print(f"Total de IDs processados e subidos: {resultados.shape[0]}")
+    print(f"\n✅ Total de IDs processados e subidos: {resultados.shape[0]}")
+
 
 def enviar_email_com_anexo(destinatario, assunto, mensagem, anexo_path):
     """Envia um e-mail com um arquivo anexo."""
