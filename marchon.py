@@ -365,6 +365,9 @@ def main():
         mensagem_email,
         os.path.join("resultado_correspondencias.xlsx")  # O arquivo que você gerou anteriormente
     )
+         # Enviar dados para a API do Bling
+    sucesso = enviar_dados_api(resultados, DEPOSITO_ID)
+    print(f"\n✅ {sucesso} produtos foram enviados para a API com sucesso.")
 def enviar_email_com_anexo(destinatario, assunto, mensagem, anexo_path):
     """Envia um e-mail com um arquivo anexo."""
     remetente = "victor@compreoculos.com.br"  # Altere para seu e-mail
