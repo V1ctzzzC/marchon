@@ -16,6 +16,12 @@ from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
 
+# Ativa ou desativa o corte de estoque
+ATIVAR_CORTE_ESTOQUE = True
+
+# Definição do ID do depósito
+DEPOSITO_ID = 14888163276  # Substitua pelo ID do depósito desejado
+
 # Definir o caminho para o repositório "marchon"
 MARCHON_FOLDER = os.path.join(os.getcwd(), 'marchon')  # Obtém o diretório atual
 
@@ -46,15 +52,7 @@ BASIC_AUTH = ("19f357c5eccab671fe86c94834befff9b30c3cea", "0cf843f8d474ebcb3f398
 
 # Configuração do log
 logging.basicConfig(filename=LOG_FILE, level=logging.INFO, format="%(asctime)s - %(message)s")
-
-# Definição do ID do depósito
-DEPOSITO_ID = 14888163276  # Substitua pelo ID do depósito desejado
-
 TOKEN_FILE = os.path.join(os.path.dirname(__file__), "token_novo.json")
-
-# Ativa ou desativa o corte de estoque
-ATIVAR_CORTE_ESTOQUE = True
-
 
 def registrar_log(mensagem):
     """Registra mensagens no arquivo de log e imprime na saída."""
