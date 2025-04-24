@@ -122,8 +122,10 @@ def buscar_correspondencias(sftp_df, usuario_df):
         print("Erro: Arquivos de entrada não carregados corretamente.")
         return pd.DataFrame()
 
+    # Merge dos DataFrames
     resultado = usuario_df.merge(sftp_df, on="codigo_produto", how="left")
 
+    # Aplicar corte de estoque se ativado
     if ATIVAR_CORTE_ESTOQUE:
         print("🔧 Corte de estoque ativado: Subtraindo 10 unidades de balanços acima de 10.")
         resultado['balanco'] = resultado['balanco'].apply(
@@ -137,13 +139,6 @@ def buscar_correspondencias(sftp_df, usuario_df):
 
     # Ordenar os resultados pelo 'balanco' em ordem decrescente
     resultado = resultado.sort_values(by='balanco', ascending=False)
-
-    # Caminho para salvar os resultados no repositório
-    caminho_resultado = os.path.join(os.path.dirname(__file__), "resultado_correspondencias_10.xlsx")
-
-    # Salvar os resultados em um arquivo
-    resultado.to_excel(caminho_resultado, index=False)
-    print(f"✅ Resultados salvos em: {caminho_resultado}")
 
     return resultado
 
