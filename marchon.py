@@ -220,7 +220,7 @@ def enviar_dados_api(resultado_df, deposito_id):
                     # Calcular o tempo de resposta do servidor
                     response_time = send_end_time - send_start_time
                     log_envio(f"⏱ Tempo de resposta do servidor para {row['codigo_produto']}: {response_time:.2f} segundos")
-                     time.sleep(0.4)  # 💤 Aguarda para não exceder o limite da API
+                    time.sleep(0.4)  # 💤 Aguarda para não exceder o limite da API
                 else:
                     log_envio(f"⚠ Produto {row['codigo_produto']} não enviado, balanço igual a zero.")
 
