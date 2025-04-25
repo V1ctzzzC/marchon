@@ -363,7 +363,7 @@ def main():
         "victor@compreoculos.com.br",
         "Relatório de Estoque",
         mensagem_email,
-        os.path.join(MARCHON_FOLDER, "resultado_correspondencias.xlsx")  # O arquivo que você gerou anteriormente
+        os.path.join(os.path.dirname(__file__), "resultado_correspondencias.xlsx")
     )
 
     # Print final com a contagem de IDs que foram "subidos"
