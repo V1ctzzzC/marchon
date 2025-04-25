@@ -346,14 +346,14 @@ def main():
 
     # Calcular soma do estoque e contagem de IDs com estoque maior ou igual a 1
     soma_estoque = resultados['balanco'].sum()
-    contagem_ids_maior_igual_1 = resultados[resultados['balanco'] >= 1].shape[0]
+    contagem_ids_diferente_zero = resultados[resultados['balanco'] != 0].shape[0]
 
     # Verificar se o corte de estoque está ativado
     status_corte_estoque = "ativado" if ATIVAR_CORTE_ESTOQUE else "desativado"
 
     # Mensagem do e-mail com resumo do estoque
     mensagem_email = (
-    f"📦 Produtos enviados para a API (balanço >= 1): {contagem_ids_maior_igual_1}\n"
+    f"📦 Produtos enviados para a API (balanço ≠ 0): {contagem_ids_diferente_zero}\n"
     f"🧮 Soma total do estoque (balanço): {soma_estoque}\n"
     f"🔒 Corte de Estoque: {status_corte_estoque}\n\n"
     "📎 Segue em anexo o relatório atualizado da Marchon."
