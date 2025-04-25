@@ -353,10 +353,10 @@ def main():
 
     # Mensagem do e-mail com resumo do estoque
     mensagem_email = (
-        f"Soma do Estoque: {soma_estoque}\n"
-        f"Quantidade de IDs com Estoque Maior ou Igual a 1: {contagem_ids_maior_igual_1}\n"
-        f"Corte de Estoque: {status_corte_estoque}\n"
-        "Segue em anexo o relatório atualizado da Marchon."
+    f"📦 Produtos enviados para a API (balanço >= 1): {contagem_ids_maior_igual_1}\n"
+    f"🧮 Soma total do estoque (balanço): {soma_estoque}\n"
+    f"🔒 Corte de Estoque: {status_corte_estoque}\n\n"
+    "📎 Segue em anexo o relatório atualizado da Marchon."
     )
 
     # Enviar o e-mail com o relatório e resumo do estoque
