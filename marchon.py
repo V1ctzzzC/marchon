@@ -185,7 +185,7 @@ def enviar_dados_api(resultado_df, deposito_id):
     start_time = time.time()
 
     for _, row in resultado_df.iterrows():
-        if pd.notna(row["balanco"]) and pd.notna(row["id_usuario"]):
+        if pd.notna(row["balanco"]) and pd.notna(row["id_usuario"]) and row["balanco"] > 0:
             payload = {
                 "produto": {
                     "id": int(row["id_usuario"]),
