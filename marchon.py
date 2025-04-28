@@ -168,8 +168,6 @@ def enviar_dados_api(resultado_df, deposito_id):
         print("Nenhum dado para enviar à API.")
         return
 
-    # Ajustar o estoque antes de enviar
-    resultado_df['balanco'] = resultado_df['balanco'].apply(lambda x: max(0, x - 10))
 
     token = obter_access_token()  # 🔥 Agora o token é gerado automaticamente!
     headers = {
