@@ -219,8 +219,16 @@ def enviar_dados_api(resultado_df, deposito_id):
                     response_time = send_end_time - send_start_time
                     log_envio(f"⏱ Tempo de resposta do servidor para {row['codigo_produto']}: {response_time:.2f} segundos")
                     time.sleep(0.4)  # 💤 Aguarda para não exceder o limite da API
-                else:
-                    log_envio(f"⚠ Produto {row['codigo_produto']} não enviado, balanço igual a zero.")
+                    else:
+                    motivo = []
+                    if pd.isna(row["balanco"]):
+                    motivo.append("balanço vazio")
+                    elif row["balanco"] <= 0:
+                    motivo.append("balanço zero ou negativo")
+                    if pd.isna(row["id_usuario"]):
+                    motivo.append("id_usuario vazio")
+        
+        log_envio(f"⚠ Produto {row['codigo_produto']} ignorado. Motivo(s): {', '.join(motivo)}")
 
             except Exception as e:
                 log_envio(f"❌ Erro ao enviar {row['codigo_produto']}: {e}")
