@@ -168,7 +168,6 @@ def enviar_dados_api(resultado_df, deposito_id):
         print("Nenhum dado para enviar à API.")
         return
 
-
     token = obter_access_token()  # 🔥 Agora o token é gerado automaticamente!
     headers = {
         "Authorization": f"Bearer {token}",
@@ -179,7 +178,6 @@ def enviar_dados_api(resultado_df, deposito_id):
     session.headers.update(headers)
 
     log_envio("\n🔍 Iniciando envio de dados para a API...\n")
-    # Contador de envios bem-sucedidos
     contador_envios = 0
     total_bytes_enviados = 0
     start_time = time.time()
@@ -201,42 +199,42 @@ def enviar_dados_api(resultado_df, deposito_id):
                 "observacoes": "Atualização de estoque via script"
             }
             try:
-                # Verifica se o balanço é maior que zero antes de enviar
-                if row["balanco"] > 0:
-                    send_start_time = time.time()  # Início do envio
-                    response = session.post(API_URL, json=payload)
-                    send_end_time = time.time()  # Fim do envio
-                    total_bytes_enviados += len(json.dumps(payload).encode('utf-8'))
+                send_start_time = time.time()
+                response = session.post(API_URL, json=payload)
+                send_end_time = time.time()
+                total_bytes_enviados += len(json.dumps(payload).encode('utf-8'))
 
-                    log_msg = f"\n📦 Enviado para API:\n{json.dumps(payload, indent=2)}"
+                log_msg = f"\n📦 Enviado para API:\n{json.dumps(payload, indent=2)}"
 
-                    if response.status_code in [200, 201]:
-                        log_envio(f"✔ Sucesso [{response.status_code}]: Produto {row['codigo_produto']} atualizado na API.{log_msg}")
-                        contador_envios += 1  # Incrementa o contador de envios
-                    else:
-                        log_envio(f"❌ Erro [{response.status_code}]: {response.text}{log_msg}")
-                    # Calcular o tempo de resposta do servidor
-                    response_time = send_end_time - send_start_time
-                    log_envio(f"⏱ Tempo de resposta do servidor para {row['codigo_produto']}: {response_time:.2f} segundos")
-                    time.sleep(0.4)  # 💤 Aguarda para não exceder o limite da API
-                    else:
-                    motivo = []
-                    if pd.isna(row["balanco"]):
-                    motivo.append("balanço vazio")
-                    elif row["balanco"] <= 0:
-                    motivo.append("balanço zero ou negativo")
-                    if pd.isna(row["id_usuario"]):
-                    motivo.append("id_usuario vazio")
-        
-        log_envio(f"⚠ Produto {row['codigo_produto']} ignorado. Motivo(s): {', '.join(motivo)}")
+                if response.status_code in [200, 201]:
+                    log_envio(f"✔ Sucesso [{response.status_code}]: Produto {row['codigo_produto']} atualizado na API.{log_msg}")
+                    contador_envios += 1
+                else:
+                    log_envio(f"❌ Erro [{response.status_code}]: {response.text}{log_msg}")
+
+                response_time = send_end_time - send_start_time
+                log_envio(f"⏱ Tempo de resposta do servidor para {row['codigo_produto']}: {response_time:.2f} segundos")
+                time.sleep(0.4)  # 💤 Aguarda para não exceder o limite da API
 
             except Exception as e:
                 log_envio(f"❌ Erro ao enviar {row['codigo_produto']}: {e}")
+
+        else:
+            motivo = []
+            if pd.isna(row["balanco"]):
+                motivo.append("balanço vazio")
+            elif row["balanco"] <= 0:
+                motivo.append("balanço zero ou negativo")
+            if pd.isna(row["id_usuario"]):
+                motivo.append("id_usuario vazio")
+            
+            log_envio(f"⚠ Produto {row['codigo_produto']} ignorado. Motivo(s): {', '.join(motivo)}")
 
     end_time = time.time()
     total_time = end_time - start_time
     upload_speed = total_bytes_enviados / total_time if total_time > 0 else 0
     cpu_usage = psutil.cpu_percent(interval=1)
+
 
 import json
 import os
