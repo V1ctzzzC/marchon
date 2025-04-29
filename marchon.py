@@ -236,10 +236,6 @@ def enviar_dados_api(resultado_df, deposito_id):
     cpu_usage = psutil.cpu_percent(interval=1)
 
 
-import json
-import os
-import subprocess
-import requests
 
 TOKEN_FILE = os.path.join(os.path.dirname(__file__), "token_novo.json")
 
