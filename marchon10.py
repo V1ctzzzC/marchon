@@ -50,6 +50,9 @@ logging.basicConfig(filename=LOG_FILE, level=logging.INFO, format="%(asctime)s -
 # Definição do ID do depósito
 DEPOSITO_ID = 14888253052  # Substitua pelo ID do depósito desejado
 
+# Ativa ou desativa o corte de estoque
+ATIVAR_CORTE_ESTOQUE = False
+
 TOKEN_FILE = os.path.join(os.path.dirname(__file__), "token_novo.json")
 
 def registrar_log(mensagem):
@@ -120,20 +123,23 @@ def buscar_correspondencias(sftp_df, usuario_df):
         print("Erro: Arquivos de entrada não carregados corretamente.")
         return pd.DataFrame()
 
+    # Merge dos DataFrames
     resultado = usuario_df.merge(sftp_df, on="codigo_produto", how="left")
+
+    # Aplicar corte de estoque se ativado
+    if ATIVAR_CORTE_ESTOQUE:
+        print("🔧 Corte de estoque ativado: Subtraindo 10 unidades de balanços acima de 10.")
+        resultado['balanco'] = resultado['balanco'].apply(
+            lambda x: max(x - 10, 0) if pd.notna(x) and x > 10 else x
+        )
+    else:
+        print("🚫 Corte de estoque desativado.")
 
     # Filtrar apenas os produtos com balanço maior que zero
     resultado = resultado[resultado['balanco'] > 0]
 
     # Ordenar os resultados pelo 'balanco' em ordem decrescente
     resultado = resultado.sort_values(by='balanco', ascending=False)
-
-    # Caminho para salvar os resultados no repositório
-    caminho_resultado = os.path.join(os.path.dirname(__file__), "resultado_correspondencias_10.xlsx")
-
-    # Salvar os resultados em um arquivo
-    resultado.to_excel(caminho_resultado, index=False)
-    print(f"✅ Resultados salvos em: {caminho_resultado}")
 
     return resultado
 
@@ -162,8 +168,7 @@ def enviar_dados_api(resultado_df, deposito_id):
     """Envia os dados processados para a API do Bling."""
     if resultado_df.empty:
         print("Nenhum dado para enviar à API.")
-        return 0
-
+        return
 
     token = obter_access_token()  # 🔥 Agora o token é gerado automaticamente!
     headers = {
@@ -175,13 +180,12 @@ def enviar_dados_api(resultado_df, deposito_id):
     session.headers.update(headers)
 
     log_envio("\n🔍 Iniciando envio de dados para a API...\n")
-
     contador_envios = 0
     total_bytes_enviados = 0
     start_time = time.time()
 
     for _, row in resultado_df.iterrows():
-        if pd.notna(row["balanco"]) and pd.notna(row["id_usuario"]):
+        if pd.notna(row["balanco"]) and pd.notna(row["id_usuario"]) and row["balanco"] > 0:
             payload = {
                 "produto": {
                     "id": int(row["id_usuario"]),
@@ -197,26 +201,36 @@ def enviar_dados_api(resultado_df, deposito_id):
                 "observacoes": "Atualização de estoque via script"
             }
             try:
-                if row["balanco"] > 0:
-                    send_start_time = time.time()
-                    response = session.post(API_URL, json=payload)
-                    send_end_time = time.time()
-                    total_bytes_enviados += len(json.dumps(payload).encode('utf-8'))
+                send_start_time = time.time()
+                response = session.post(API_URL, json=payload)
+                send_end_time = time.time()
+                total_bytes_enviados += len(json.dumps(payload).encode('utf-8'))
 
-                    log_msg = f"\n📦 Enviado para API:\n{json.dumps(payload, indent=2)}"
+                log_msg = f"\n📦 Enviado para API:\n{json.dumps(payload, indent=2)}"
 
-                    if response.status_code in [200, 201]:
-                        log_envio(f"✔ Sucesso [{response.status_code}]: Produto {row['codigo_produto']} atualizado na API.{log_msg}")
-                        contador_envios += 1
-                    else:
-                        log_envio(f"❌ Erro [{response.status_code}]: {response.text}{log_msg}")
-
-                    response_time = send_end_time - send_start_time
-                    log_envio(f"⏱ Tempo de resposta do servidor para {row['codigo_produto']}: {response_time:.2f} segundos")
+                if response.status_code in [200, 201]:
+                    log_envio(f"✔ Sucesso [{response.status_code}]: Produto {row['codigo_produto']} atualizado na API.{log_msg}")
+                    contador_envios += 1
                 else:
-                    log_envio(f"⚠ Produto {row['codigo_produto']} não enviado, balanço igual a zero.")
+                    log_envio(f"❌ Erro [{response.status_code}]: {response.text}{log_msg}")
+
+                response_time = send_end_time - send_start_time
+                log_envio(f"⏱ Tempo de resposta do servidor para {row['codigo_produto']}: {response_time:.2f} segundos")
+                time.sleep(0.4)  # 💤 Aguarda para não exceder o limite da API
+
             except Exception as e:
                 log_envio(f"❌ Erro ao enviar {row['codigo_produto']}: {e}")
+
+        else:
+            motivo = []
+            if pd.isna(row["balanco"]):
+                motivo.append("balanço vazio")
+            elif row["balanco"] <= 0:
+                motivo.append("balanço zero ou negativo")
+            if pd.isna(row["id_usuario"]):
+                motivo.append("id_usuario vazio")
+            
+            log_envio(f"⚠ Produto {row['codigo_produto']} ignorado. Motivo(s): {', '.join(motivo)}")
 
     end_time = time.time()
     total_time = end_time - start_time
@@ -224,14 +238,6 @@ def enviar_dados_api(resultado_df, deposito_id):
     cpu_usage = psutil.cpu_percent(interval=1)
 
     return contador_envios
-
-
-
-
-import json
-import os
-import subprocess
-import requests
 
 TOKEN_FILE = os.path.join(os.path.dirname(__file__), "token_novo.json")
 
@@ -340,13 +346,28 @@ def main():
 
     # Buscar correspondências entre os dados do SFTP e do usuário
     resultados = buscar_correspondencias(sftp_df, usuario_df)
-    
+
     # Salvar resultados no repositório
     salvar_resultados(resultados)
     # Fazer commit e push dos resultados
     commit_e_push_resultados()
     # Enviar dados para a API do Bling
     enviar_dados_api(resultados, DEPOSITO_ID)
+
+    # Calcular soma do estoque e contagem de IDs com estoque maior ou igual a 1
+    soma_estoque = resultados['balanco'].sum()
+    contagem_ids_diferente_zero = resultados[resultados['balanco'] != 0].shape[0]
+
+    # Verificar se o corte de estoque está ativado
+    status_corte_estoque = "ativado" if ATIVAR_CORTE_ESTOQUE else "desativado"
+
+    # Mensagem do e-mail com resumo do estoque
+    mensagem_email = (
+    f"📦 Produtos enviados para a API (balanço ≠ 0): {contagem_ids_diferente_zero}\n"
+    f"🧮 Soma total do estoque (balanço): {soma_estoque}\n"
+    f"🔒 Corte de Estoque: {status_corte_estoque}\n\n"
+    "📎 Segue em anexo o relatório atualizado da Marchon."
+    )
 
      # Enviar dados para a API do Bling
     sucesso = enviar_dados_api(resultados, DEPOSITO_ID)
