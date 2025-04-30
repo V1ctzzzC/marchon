@@ -377,7 +377,7 @@ def main():
     enviar_email_com_anexo(
         "victor@compreoculos.com.br",
         "Relatório de Estoque Marchon 10",
-        "Segue em anexo o relatório atualizado da Marchon10.",
+        mensagem_email,
         os.path.join("resultado_correspondencias_10.xlsx")  # O arquivo que você gerou anteriormente
     )
 
